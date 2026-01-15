@@ -65,7 +65,8 @@ jobs:
 
 
     - name: Frontend availability check
-      run: curl -f http://localhost:3000
+      run: curl -f http://localhost:3001
+
 
     - name: Stop containers
       run: docker compose down
