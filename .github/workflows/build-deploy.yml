@@ -1,0 +1,66 @@
+name: CI/CD Pipeline From Scratch
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+
+  ci:
+    name: Continuous Integration
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout source code
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+
+    - name: Install backend dependencies
+      working-directory: backend
+      run: npm install
+
+    - name: Run backend tests
+      working-directory: backend
+      run: npm test --if-present
+
+    - name: Install frontend dependencies
+      working-directory: frontend
+      run: npm install
+
+    - name: Run frontend tests
+      working-directory: frontend
+      run: npm test --if-present
+
+    - name: Build frontend
+      working-directory: frontend
+      run: npm run build
+
+  cd:
+    name: Continuous Deployment
+    needs: ci
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout source code
+      uses: actions/checkout@v3
+
+    - name: Build Docker images
+      run: docker compose build
+
+    - name: Start application containers
+      run: docker compose up -d
+
+    - name: Backend health check
+      run: curl -f http://localhost:5000/health
+
+    - name: Frontend availability check
+      run: curl -f http://localhost:3000
+
+    - name: Stop containers
+      run: docker compose down
